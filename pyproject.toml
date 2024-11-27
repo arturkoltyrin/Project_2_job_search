@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "project-2-job-search"
+version = "0.1.0"
+description = "The method for obtaining vacancies is implemented separately in an abstract class"
+authors = ["Artur Koltyrin <koltyrinartur@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pytest = "^8.3.3"
+
+
+[tool.poetry.group.lint.dependencies]
+mypy = "^1.13.0"
+black = "^24.10.0"
+isort = "^5.13.2"
+flake8 = "^7.1.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
