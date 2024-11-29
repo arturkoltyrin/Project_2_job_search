@@ -1,92 +1,58 @@
-from typing import Any
+class Vacancy:
+    """Класс для представления вакансий"""
+    __slots__ = ("name", "url", "requirement", "responsibility", "salary")
 
-from texttable import Texttable
+    def __init__(self, name: str, url: str, requirement: str, responsibility: str, salary=None):
+        """Инициализатор класса Vacancy"""
+        self.name = name
+        self.url = url
+        self.requirement = requirement
+        self.responsibility = responsibility
+        self.salary = self.__salary_validation(salary)
 
-from src.get_vacancies import GetVacancies
-from src.operations_with_vacancies import SalaryOfVacancies
+    @staticmethod
+    def __salary_validation(salary: int):
+        """Валидация зарплаты"""
+        if salary:
+            return salary
+        return 0
 
+    @classmethod
+    def cast_to_object_list(cls, vacancies: list[dict]):
+        """Возвращает список экземпляров Vacancy из списка словарей"""
 
-def search(
-    keyword: str,
-    keyword_2: str,
-    occupation: str,
-    curr: str,
-    salary_from: str,
-    salary_to: str,
-) -> Any:
-    """Функция, с помощью которой пользователь может ввести поисковый запрос для вакансий hh.ru"""
+        return [cls(**vac) for vac in vacancies]
 
-    data = SalaryOfVacancies(
-        keyword, keyword_2, occupation, curr, int(salary_from), int(salary_to)
-    )
-    operation_data = data._avg()
-    readable_list_vacations = []
-    for post in operation_data:
-        readable_list_vacations.append(
-            f"Имя вакансии - {post['name']},"
-            f"месторасположение - {post['area']['name']},"
-            f"средняя зарплата - {post['salary']['avg']},"
-            f"валюта - {post['salary']['currency']},"
-            f"url - {post['alternate_url']}"
-        )
-    return readable_list_vacations
+    def __str__(self):
+        """Метод строкового предсиавления вакансий"""
 
+        return (f"{self.name} (Зарплата: {self.salary if self.salary else 'не указана'}).\nТребования: {self.requirement}.\n"
+                f"Обязанности: {self.responsibility}.\nСсылка: {self.url}")
 
-def top_vacations(keyword: str, quantity: str) -> list:
-    """Функция, с помощью которой можно получить топ N вакансий по зарплате"""
-    vacancies = GetVacancies(keyword)._loading()
-    list_vacancies = []
-    for employee in vacancies:
-        if (
-            employee.get("salary") is None
-            or employee["salary"].get("to") is None
-            or employee["salary"].get("from") is None
-            or employee in list_vacancies
-        ):
-            continue
-        list_vacancies.append(employee)
+    @classmethod
+    def __verify_data(cls, other):
+        """Проверка типа данных"""
+        if not isinstance(other, (float, Vacancy)):
+            raise TypeError
 
-    for vacation in list_vacancies:
-        avg_pay = (vacation["salary"].get("from") + vacation["salary"].get("to")) / 2
-        vacation["salary"]["avg"] = avg_pay
+        return other if isinstance(other, float) else other.salary
 
-    top_five_vacations = sorted(list_vacancies, key=lambda x: x["salary"]["avg"])[
-        : int(quantity)
-    ]
-    readable_list_vacations = []
-    for job in top_five_vacations:
-        readable_list_vacations.append(
-            {
-                "имя вакансии": job["name"],
-                "месторасположение": job["area"]["name"],
-                "средняя зарплата": job["salary"]["avg"],
-                "валюта": job["salary"]["currency"],
-                "url": job["alternate_url"],
-            }
-        )
-    return readable_list_vacations
+    def __eq__(self, other):
+        """Метод сравнения вакансий (=)"""
+        sal = self.__verify_data(other)
+        return self.salary == sal
 
+    def __lt__(self, other):
+        """Метод сравнения вакансий (<)"""
+        sal = self.__verify_data(other)
+        return self.salary < sal
 
-def get_vacations_with_keyword(keyword: str) -> Any:
-    """Функция, с помощью которой пользователь может получить вакансии по ключам"""
-    vacancies = GetVacancies(keyword)._loading()
-    t = Texttable()
-    for worker in vacancies:
-        if (
-            worker.get("salary") is None
-            or worker["salary"].get("to") is None
-            or worker["salary"].get("from") is None
-        ):
-            continue
-        else:
-            t.add_row(
-                [
-                    worker["name"],
-                    worker["area"]["name"],
-                    worker["salary"]["from"],
-                    worker["salary"]["to"],
-                    worker["salary"]["currency"],
-                    worker["alternate_url"],
-                ]
-            )
-    return t.draw()
+    def __le__(self, other):
+        """Метод сравнения вакансий (<=)"""
+        sal = self.__verify_data(other)
+        return self.salary <= sal
+
+    def to_dict(self):
+        """Возвращает словарь с данными о вакансии из экземпляра класса Vacancy"""
+        return {"name": self.name, "url": self.url, "requirement": self.requirement,
+                "responsibility": self.responsibility, "salary": self.salary}

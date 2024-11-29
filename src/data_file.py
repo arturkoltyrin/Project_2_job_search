@@ -1,151 +1,77 @@
 import json
-import os
+import os.path
 from abc import ABC, abstractmethod
+from json import JSONDecodeError
 
-from src.operations_with_vacancies import OperationsWithVacancies, SalaryOfVacancies
+from config import DATA_DIR
+from src.user_interaction import Vacancy
 
 
-class AbstractSave(ABC):
-    """Абстрактный класс, реализующий метод для добавления вакансий в файл"""
+class BaseSaver(ABC):
 
     @abstractmethod
-    def _save_data(self):
-        """Метод для добавления вакансий в файл"""
+    def add_vacancy(self, vacancy):
+        pass
+
+    @abstractmethod
+    def get_vacancy_by_vacancy_name(self, word):
+        pass
+
+    @abstractmethod
+    def del_vacancy(self, vacancy):
         pass
 
 
-class AbstractGet(ABC):
-    """Абстрактный класс, реализующий метод для получения данных из файла по указанным критериям"""
+class JSONSaver(BaseSaver):
 
-    @abstractmethod
-    def _get_data(self):
-        """Метод для получения данных из файла по указанным критериям"""
-        pass
+    def __init__(self, filename="vacancies.json"):
+        """Инициализатор класса JSONSaver"""
+        self.__file_path = os.path.join(DATA_DIR, filename)
 
+    def __save_to_file(self, vacancies: list[dict]) -> None:
+        """Сохраняет данные в json-файл"""
+        with open(self.__file_path, "w", encoding="utf-8") as f:
+            json.dump(vacancies, f, ensure_ascii=False)
 
-class AbstractDelete(ABC):
-    """Абстрактный класс, реализующий метод для удаления информации о вакансиях"""
-
-    @abstractmethod
-    def _delete_data(self):
-        """Метод для удаления информации о вакансиях"""
-        pass
-
-
-class SaveData(SalaryOfVacancies, OperationsWithVacancies, AbstractSave):
-    """Класс для работы с добавления информации о вакансиях в JSON-файл"""
-
-    def __init__(
-        self,
-        keyword: str,
-        keyword_2: str,
-        employment: str,
-        currency: str,
-        pay_from: int,
-        pay_to: int,
-        file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json",
-    ):
-        """Метод-конструктор"""
-        super().__init__(keyword, keyword_2, employment, currency, pay_from, pay_to)
-        self.__file = file
-
-    def _save_data(self):
-        """Метод для добавления вакансий в файл"""
-        # Проверяем существует ли файл, если нет, создаем новый
-        if not os.path.exists(self.__file):
-            with open(self.__file, "w", encoding="utf-8") as f:
-                json.dump([], f)  # Инициализируем файл пустым списком
-
+    def __read_file(self) -> list[dict]:
+        """Считывает данные из json-файла"""
         try:
-            with open(self.__file, "r", encoding="utf-8") as file:
-                try:
-                    data_from_json_file = json.load(file)
-                except json.decoder.JSONDecodeError:
-                    data_from_json_file = []
+            with open(self.__file_path, encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            data = []
+        except JSONDecodeError:
+            data = []
 
-            vacancies = self._comparison_pay()
-            if vacancies is not None:
-                for vacancy in vacancies:
-                    if vacancy not in data_from_json_file:
-                        data_from_json_file.append(vacancy)
+        return data
 
-                with open(self.__file, "w", encoding="utf-8") as f:
-                    json.dump(data_from_json_file, f, ensure_ascii=False)
-                return vacancies
-            else:
-                return []
+    def add_vacancy(self, vacancy: Vacancy) -> None:
+        """Добавляет вакансию в файл"""
+        vacancies_list = self.__read_file()
 
-        except Exception as e:
-            print(f"Ошибка в классе SaveData: {e}")
-            return None
+        if vacancy.url not in [vac["url"] for vac in vacancies_list]:
+            vacancies_list.append(vacancy.to_dict())
+            self.__save_to_file(vacancies_list)
 
+    def add_vacancies(self, vacancies: list[dict]) -> None:
+        """Добавляет вакансии в файл"""
+        self.__save_to_file(vacancies)
 
-class GetData(OperationsWithVacancies, AbstractGet):
-    """Класс для получения информации из в JSON-файла"""
+    def del_vacancy(self, url: str) -> None:
+        """Удаляет вакансию из файла"""
+        vacancies_list = self.__read_file()
+        for index, vac in enumerate(vacancies_list):
+            if vac["url"] == url:
+                vacancies_list.pop(index)
 
-    def __init__(
-        self,
-        keyword: str,
-        keyword_2: str,
-        employment: str,
-        currency: str,
-        pay_from: int,
-        pay_to: int,
-        file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json",
-    ):
-        """Метод-конструктор"""
-        super().__init__(keyword, keyword_2, employment, currency, pay_from, pay_to)
-        self.__file = file
+        self.__save_to_file(vacancies_list)
 
-    def _get_data(self):
-        """Метод для получения данных из файла по критериям"""
-        if not os.path.exists(self.__file):
-            return "Файл не найден"
+    def get_vacancy_by_vacancy_name(self, word: str) -> list[Vacancy]:
+        """Возвращает список вакансий по ключевому слову в названии вакансии"""
+        found_vacancies = []
 
-        try:
-            with open(self.__file, "r", encoding="utf-8") as file:
-                data_from_json_file = json.load(file)
+        for vac in self.__read_file():
+            if word in vac.get("name").lower():
+                found_vacancies.append(vac)
 
-            vacations = []
-            for vacancy in data_from_json_file:
-                if (
-                    self._keyword_2 in vacancy.get("name", "")
-                    and self._employment in vacancy["employment"].get("name", "")
-                    and self._currency in vacancy["salary"].get("currency", "")
-                    and vacancy["salary"].get("from", 0) >= self._pay_from
-                    and vacancy["salary"].get("to", 0) <= self._pay_to
-                ):
-                    vacations.append(vacancy)
-
-            return vacations if vacations else "Работа не найдена"
-
-        except Exception as e:
-            print(f"Ошибка в классе GetData: {e}")
-            return None
-
-
-class DeleteData(OperationsWithVacancies, AbstractDelete):
-    """Класс для очистки JSON-файла"""
-
-    def __init__(
-        self,
-        keyword: str,
-        keyword_2: str,
-        employment: str,
-        currency: str,
-        pay_from: int,
-        pay_to: int,
-        file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json",
-    ):
-        """Метод-конструктор"""
-        super().__init__(keyword, keyword_2, employment, currency, pay_from, pay_to)
-        self.__file = file
-
-    def _delete_data(self):
-        """Метод для удаления информации о вакансиях"""
-        if os.path.exists(self.__file):
-            with open(self.__file, "w", encoding="utf-8") as file:
-                json.dump([], file)  # Чистим файл
-            return f"Файл {self.__file} очищен"
-        else:
-            return f"Файл {self.__file} не найден"
+        return Vacancy.cast_to_object_list(found_vacancies)

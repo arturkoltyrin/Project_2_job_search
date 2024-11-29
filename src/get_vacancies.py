@@ -1,35 +1,65 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict
-
 import requests
 
 
-class AbstractGet(ABC):
-    """Абстрактный класс для работы с API сервиса с вакансиями"""
+class Parser(ABC):
 
     @abstractmethod
-    def _loading(self):
-        """Метод, который должен быть в подклассе"""
+    def load_vacancies(self, keyword):
         pass
 
 
-class GetVacancies(AbstractGet):
-    """Класс, наследующийся от абстрактного класса (hh.ru)"""
+class HeadHunterAPI(Parser):
+    """Класс для работы с API HeadHunter"""
 
-    def __init__(self, keyword):
-        """Класс-конструктор, который получает ключевое слово для поиска"""
-        self.__url = "https://api.hh.ru/vacancies"
-        self.__params: Dict[str, str | int] = {"text": keyword, "per_page": 100}
-        self._keyword = keyword
-        self._vacancies: Any = []
+    def __init__(self):
+        """Инициализатор класса HeadHunterAPI"""
+        self.__url = 'https://api.hh.ru/vacancies'
+        self.__headers = {'User-Agent': 'HH-User-Agent'}
+        self.__params = {'text': '', 'page': 0, 'per_page': 100}
+        self.__vacancies = []
 
-    def _loading(self):
-        """Метод, подключающийся к API и получающий вакансии"""
-        try:
-            json_data = requests.get(self.__url, params=self.__params)
-            if json_data.status_code == 200:
-                self._vacancies = json_data.json().get("items", [])
-            return self._vacancies
-        except Exception as e:
-            print("Ошибка в классе GetVacancies")
-            return []
+    def __api_connect(self):
+        """Подключение к API hh.ru"""
+        response = requests.get(self.__url, headers=self.__headers, params=self.__params)
+        if response.status_code == 200:
+            return response
+
+        print("Ошибка получения данных")
+
+    def load_vacancies(self, keyword: str) -> list:
+        """Получение вакансий по ключевому слову"""
+        self.__params['text'] = keyword
+        while self.__params.get('page') != 20:
+            response = self.__api_connect()
+            if response:
+                vacancies = response.json()['items']
+                self.__vacancies.extend(vacancies)
+                self.__params['page'] += 1
+            else:
+                break
+
+        vacancies_list = []
+
+        if self.__vacancies:
+
+            # получение списка словарей с ключами
+            for vacancy in self.__vacancies:
+                name = vacancy.get("name")
+                url = vacancy.get("alternate_url")
+                requirement = vacancy.get("snippet").get("requirement")
+                responsibility = vacancy.get("snippet").get("responsibility")
+
+                if vacancy.get("salary"):
+                    if vacancy.get("salary").get("to"):
+                        salary = vacancy.get("salary").get("to")
+                    elif vacancy.get("salary").get("from"):
+                        salary = vacancy.get("salary").get("from")
+                else:
+                    salary = 0
+
+                vac = {"name": name, "url": url, "requirement": requirement, "responsibility": responsibility,
+                       "salary": salary}
+                vacancies_list.append(vac)
+
+        return vacancies_list
