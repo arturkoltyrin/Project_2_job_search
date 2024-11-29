@@ -1,5 +1,7 @@
 import pytest
-from src.operations_with_vacancies import OperationsWithVacancies, SalaryOfVacancies
+
+from src.operations_with_vacancies import (OperationsWithVacancies,
+                                           SalaryOfVacancies)
 
 mock_vacancies = [
     {
@@ -19,11 +21,15 @@ mock_vacancies = [
     },
 ]
 
+
 @pytest.fixture
 def operations_instance():
-    instance = OperationsWithVacancies("python", "Junior", "Полная занятость", "RUR", 50000, 100000)
+    instance = OperationsWithVacancies(
+        "python", "Junior", "Полная занятость", "RUR", 50000, 100000
+    )
     instance._vacancies = mock_vacancies
     return instance
+
 
 def test_operations_with_vacancies_initialization(operations_instance):
     assert operations_instance._keyword == "python"
@@ -34,16 +40,21 @@ def test_operations_with_vacancies_initialization(operations_instance):
     assert operations_instance._pay_to == 100000
     assert operations_instance._sorted_vacancies == []
 
+
 def test_filtered_vacancies(operations_instance):
     filtered_vacancies = operations_instance._filtered_vacancies()
     assert len(filtered_vacancies) == 1
     assert filtered_vacancies[0]["name"] == "Junior Python Developer"
 
+
 @pytest.fixture
 def salary_instance():
-    instance = SalaryOfVacancies("python", "Junior", "Полная занятость", "RUR", 50000, 100000)
+    instance = SalaryOfVacancies(
+        "python", "Junior", "Полная занятость", "RUR", 50000, 100000
+    )
     instance._vacancies = mock_vacancies
     return instance
+
 
 def test_avg_salary(salary_instance):
     avg_vacancies = salary_instance._avg()
@@ -51,9 +62,11 @@ def test_avg_salary(salary_instance):
     assert "avg" in avg_vacancies[0]["salary"]
     assert avg_vacancies[0]["salary"]["avg"] == 65000.0
 
+
 def test_highest_pay(salary_instance):
     highest_vacancy = salary_instance._highest_pay()
     assert highest_vacancy["name"] == "Junior Python Developer"
+
 
 def test_get_max_avg_salary(salary_instance):
     max_avg_salary = salary_instance._get_max_avg_salary()

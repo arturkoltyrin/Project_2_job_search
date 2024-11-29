@@ -1,17 +1,24 @@
 import json
-import pytest
 from unittest.mock import mock_open, patch
+
+import pytest
+
 from src.data_file import GetData, SaveData
 
 
 def test_save_data_json_decode_error():
-    save_data_instance = SaveData("keyword", "keyword_2", "employment", "currency", 0, 100000)
+    save_data_instance = SaveData(
+        "keyword", "keyword_2", "employment", "currency", 0, 100000
+    )
     m = mock_open(read_data="invalid json")
 
     with patch("builtins.open", m):
         with patch("json.dump") as mock_dump:
-            with patch.object(save_data_instance, "_comparison_pay",
-                              return_value=[{"vacancy": "Developer", "salary": 50000}]):
+            with patch.object(
+                save_data_instance,
+                "_comparison_pay",
+                return_value=[{"vacancy": "Developer", "salary": 50000}],
+            ):
                 result = save_data_instance._save_data()
 
             mock_dump.assert_called_once()

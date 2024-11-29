@@ -1,8 +1,9 @@
 import json
-from abc import ABC, abstractmethod
 import os
+from abc import ABC, abstractmethod
 
-from src.operations_with_vacancies import OperationsWithVacancies, SalaryOfVacancies
+from src.operations_with_vacancies import (OperationsWithVacancies,
+                                           SalaryOfVacancies)
 
 
 class AbstractSave(ABC):
@@ -36,14 +37,15 @@ class SaveData(SalaryOfVacancies, OperationsWithVacancies, AbstractSave):
     """Класс для работы с добавления информации о вакансиях в JSON-файл"""
 
     def __init__(
-            self,
-            keyword: str,
-            keyword_2: str,
-            employment: str,
-            currency: str,
-            pay_from: int,
-            pay_to: int,
-            file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json"):
+        self,
+        keyword: str,
+        keyword_2: str,
+        employment: str,
+        currency: str,
+        pay_from: int,
+        pay_to: int,
+        file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json",
+    ):
         """Метод-конструктор"""
         super().__init__(keyword, keyword_2, employment, currency, pay_from, pay_to)
         self.__file = file
@@ -83,14 +85,15 @@ class GetData(OperationsWithVacancies, AbstractGet):
     """Класс для получения информации из в JSON-файла"""
 
     def __init__(
-            self,
-            keyword: str,
-            keyword_2: str,
-            employment: str,
-            currency: str,
-            pay_from: int,
-            pay_to: int,
-            file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json"):
+        self,
+        keyword: str,
+        keyword_2: str,
+        employment: str,
+        currency: str,
+        pay_from: int,
+        pay_to: int,
+        file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json",
+    ):
         """Метод-конструктор"""
         super().__init__(keyword, keyword_2, employment, currency, pay_from, pay_to)
         self.__file = file
@@ -107,11 +110,11 @@ class GetData(OperationsWithVacancies, AbstractGet):
             vacations = []
             for vacancy in data_from_json_file:
                 if (
-                        self._keyword_2 in vacancy.get("name", "")
-                        and self._employment in vacancy["employment"].get("name", "")
-                        and self._currency in vacancy["salary"].get("currency", "")
-                        and vacancy["salary"].get("from", 0) >= self._pay_from
-                        and vacancy["salary"].get("to", 0) <= self._pay_to
+                    self._keyword_2 in vacancy.get("name", "")
+                    and self._employment in vacancy["employment"].get("name", "")
+                    and self._currency in vacancy["salary"].get("currency", "")
+                    and vacancy["salary"].get("from", 0) >= self._pay_from
+                    and vacancy["salary"].get("to", 0) <= self._pay_to
                 ):
                     vacations.append(vacancy)
 
@@ -126,14 +129,15 @@ class DeleteData(OperationsWithVacancies, AbstractDelete):
     """Класс для очистки JSON-файла"""
 
     def __init__(
-            self,
-            keyword: str,
-            keyword_2: str,
-            employment: str,
-            currency: str,
-            pay_from: int,
-            pay_to: int,
-            file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json"):
+        self,
+        keyword: str,
+        keyword_2: str,
+        employment: str,
+        currency: str,
+        pay_from: int,
+        pay_to: int,
+        file: str = r"C:\Users\user\PycharmProjects\Project_2_job_search\data\vacancies.json",
+    ):
         """Метод-конструктор"""
         super().__init__(keyword, keyword_2, employment, currency, pay_from, pay_to)
         self.__file = file

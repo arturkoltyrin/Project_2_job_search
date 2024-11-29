@@ -27,7 +27,15 @@ class OperationsWithVacancies(GetVacancies):
 
     __slots__ = ("keyword", "keyword_2", "employment", "currency", "pay_from", "pay_to")
 
-    def __init__(self, keyword: str, keyword_2: str, employment: str, currency: str, pay_from: int, pay_to: int):
+    def __init__(
+        self,
+        keyword: str,
+        keyword_2: str,
+        employment: str,
+        currency: str,
+        pay_from: int,
+        pay_to: int,
+    ):
         """Класс-конструктор, который получает атрибуты"""
         super().__init__(keyword)
         self._loading()
@@ -87,7 +95,9 @@ class SalaryOfVacancies(OperationsWithVacancies):
         self._avg()
         if not self._sorted_vacancies:
             return None
-        return sorted(self._sorted_vacancies, key=lambda x: x["salary"]["avg"], reverse=True)
+        return sorted(
+            self._sorted_vacancies, key=lambda x: x["salary"]["avg"], reverse=True
+        )
 
     def _highest_pay(self) -> Any:
         """Метод, возвращающий вакансию с максимальной средней зарплатой"""

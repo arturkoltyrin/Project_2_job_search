@@ -1,5 +1,6 @@
 from src.get_vacancies import GetVacancies
 
+
 def test_init_get_vacancies():
     keyword = "python"
     data = GetVacancies(keyword)
