@@ -2,8 +2,7 @@ import json
 import os
 from abc import ABC, abstractmethod
 
-from src.operations_with_vacancies import (OperationsWithVacancies,
-                                           SalaryOfVacancies)
+from src.operations_with_vacancies import OperationsWithVacancies, SalaryOfVacancies
 
 
 class AbstractSave(ABC):
@@ -146,7 +145,7 @@ class DeleteData(OperationsWithVacancies, AbstractDelete):
         """Метод для удаления информации о вакансиях"""
         if os.path.exists(self.__file):
             with open(self.__file, "w", encoding="utf-8") as file:
-                json.dump([], file)  # Очищаем файл, записывая пустой список
+                json.dump([], file)  # Чистим файл
             return f"Файл {self.__file} очищен"
         else:
             return f"Файл {self.__file} не найден"

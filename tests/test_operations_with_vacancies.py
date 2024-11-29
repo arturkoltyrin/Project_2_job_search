@@ -1,7 +1,6 @@
 import pytest
 
-from src.operations_with_vacancies import (OperationsWithVacancies,
-                                           SalaryOfVacancies)
+from src.operations_with_vacancies import OperationsWithVacancies, SalaryOfVacancies
 
 mock_vacancies = [
     {
