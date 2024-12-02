@@ -24,7 +24,7 @@ class BaseSaver(ABC):
 
 class JSONSaver(BaseSaver):
 
-    def __init__(self, filename="vacancies.json"):
+    def __init__(self, filename="C:/Users/user/PycharmProjects/Project_2_job_search/data/vacancies.json"):
         """Инициализатор класса JSONSaver"""
         self.__file_path = os.path.join(DATA_DIR, filename)
 
